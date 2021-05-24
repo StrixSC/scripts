@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+    pyautobg:
+        container_name: pyautobg
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ./src:/usr/dev/pyautobg/src
+        ports:
+            - "8008:8008"
+        environment:
+            - PORT=8008    

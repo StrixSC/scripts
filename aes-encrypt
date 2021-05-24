@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# Written by StrixSC - Github://StrixSC
+# Wrapper around OpenSSL
+# Encrypts a file using aes-256-cbc with keyphrase given as parameter
+
+ITER_COUNT=10000
+ENCRYPTION_ALGORITHM="aes-256-cbc"
+DIGEST="sha512"
+PBKDF2=true
+DECRYPT=false
+IN_FILE=""
+OUT_FILE=""
+PASSPHRASE=""
+
+print_help_message() {
+            echo "AES Encrypt. Wrapper around OpenSSL, quickly encrypts or decrypts a file with aes-256-cbc or a specified algorithm with a given salted passphrase."
+            echo "Usage:"
+            echo "    aes-encrypt [-h] [-d] [-m] [-a] [-i] -I <INPUT_FILE> -O <OUTPUT_FILE> -P <PASSPHRASE> "
+            echo "    [-h]      Displays this help message.                                                 "
+            echo "    [-d]      Specifies if file should be decrypted. Defaults to false.                   "
+            echo "    [-p]      Specifies if pbkdf2 algorithm should be used. Defaults to true.             "
+            echo "    [-m]      Use a specific digest to create the key. Defaults to sha512.                "
+            echo "    [-a]      Use a specific encryption algorithm. Defaults to aes-256-cbc.               "
+            echo "    [-i]      Use a specific count of iteration. Defaults to 10000.                       "
+            echo "  *  -I       File to encrypt.                                                            "
+            echo "  *  -O       Outfile.                                                                    "
+            echo "  *  -P       Passphrase.                                                                 "
+            exit 0
+}
+
+while getopts ":hdpm:a:i:I:O:P:" opt; do
+    case ${opt} in
+        h )
+            print_help_message
+            ;;
+        d ) DECRYPT=true
+            ;;
+        p ) PBKDF2=true
+            ;;
+        m ) DIGEST=$OPTARG
+            ;;
+        a ) ENCRYPTION_ALGORITHM=$OPTARG
+            ;;
+        i ) ITER_COUNT=$OPTARG
+            ;;
+        I )
+            IN_FILE=$OPTARG
+            ;;
+        O )
+            OUT_FILE=$OPTARG
+            ;;
+        P )
+            PASSPHRASE=$OPTARG
+            ;;
+        \? )
+            echo "Invalid Option: -$OPTARG" 1>&2
+            print_help_message
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND -1))
+
+if ! command -v openssl &> /dev/null
+then
+    echo "OpenSSL could not be found, make sure it is installed or is in your PATH."
+    exit
+fi
+
+ARGS="enc -$ENCRYPTION_ALGORITHM -md $DIGEST -iter $ITER_COUNT -salt"
+
+if [[ $DECRYPT = true ]]
+then
+    ARGS="$ARGS -d"
+elif [[ $PBKDF2 = true ]]
+then
+    ARGS="$ARGS -pbkdf2"
+fi
+
+if [[ $ARGS && $OUT_FILE && $IN_FILE && $PASSPHRASE ]]
+then
+    echo $ARGS
+    echo "Starting encryption for file $IN_FILE into $OUT_FILE" && \
+        openssl $ARGS -in $IN_FILE -out $OUT_FILE -k $PASSPHRASE && \
+        echo "Encryption/Decryption completed successfully"
+    exit $?
+else
+    echo "Error has occured while parsing arguments. Refer to -h to ensure the propper arguments"
+    exit 1
+fi
