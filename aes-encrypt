@@ -14,19 +14,19 @@ OUT_FILE=""
 PASSPHRASE=""
 
 print_help_message() {
-            echo "AES Encrypt. Wrapper around OpenSSL, quickly encrypts or decrypts a file with aes-256-cbc or a specified algorithm with a given salted passphrase."
-            echo "Usage:"
-            echo "    aes-encrypt [-h] [-d] [-m] [-a] [-i] -I <INPUT_FILE> -O <OUTPUT_FILE> -P <PASSPHRASE> "
-            echo "    [-h]      Displays this help message.                                                 "
-            echo "    [-d]      Specifies if file should be decrypted. Defaults to false.                   "
-            echo "    [-p]      Specifies if pbkdf2 algorithm should be used. Defaults to true.             "
-            echo "    [-m]      Use a specific digest to create the key. Defaults to sha512.                "
-            echo "    [-a]      Use a specific encryption algorithm. Defaults to aes-256-cbc.               "
-            echo "    [-i]      Use a specific count of iteration. Defaults to 10000.                       "
-            echo "  *  -I       File to encrypt.                                                            "
-            echo "  *  -O       Outfile.                                                                    "
-            echo "  *  -P       Passphrase.                                                                 "
-            exit 0
+    echo "AES Encrypt. Wrapper around OpenSSL, quickly encrypts or decrypts a file with aes-256-cbc or a specified algorithm with a given salted passphrase."
+    echo "Usage:"
+    echo "    aes-encrypt [-h] [-d] [-m] [-a] [-i] -I <INPUT_FILE> -O <OUTPUT_FILE> -P <PASSPHRASE> "
+    echo "    [-h]      Displays this help message.                                                 "
+    echo "    [-d]      Specifies if file should be decrypted. Defaults to false.                   "
+    echo "    [-p]      Specifies if pbkdf2 algorithm should be used. Defaults to true.             "
+    echo "    [-m]      Use a specific digest to create the key. Defaults to sha512.                "
+    echo "    [-a]      Use a specific encryption algorithm. Defaults to aes-256-cbc.               "
+    echo "    [-i]      Use a specific count of iteration. Defaults to 10000.                       "
+    echo "  *  -I       File to encrypt.                                                            "
+    echo "  *  -O       Outfile.                                                                    "
+    echo "  *  -P       Passphrase.                                                                 "
+    exit 0
 }
 
 while getopts ":hdpm:a:i:I:O:P:" opt; do
@@ -78,14 +78,20 @@ then
     ARGS="$ARGS -pbkdf2"
 fi
 
-if [[ $ARGS && $OUT_FILE && $IN_FILE && $PASSPHRASE ]]
+if [[ $OUT_FILE == "" ]] && [[ $IN_FILE == "" ]] && [[ $PASSPHRASE == "" ]]
+then
+    print_help_message && \
+    exit -1
+fi
+
+if [[ $ARGS ]] && [[ $OUT_FILE != "" ]] && [[ $IN_FILE != "" ]] && [[ $PASSPHRASE != "" ]]
 then
     echo $ARGS
     echo "Starting encryption for file $IN_FILE into $OUT_FILE" && \
         openssl $ARGS -in $IN_FILE -out $OUT_FILE -k $PASSPHRASE && \
         echo "Encryption/Decryption completed successfully"
-    exit $?
-else
-    echo "Error has occured while parsing arguments. Refer to -h to ensure the propper arguments"
-    exit 1
+            exit $?
+        else
+            echo "Error has occured while parsing arguments. Refer to -h to ensure the propper arguments"
+            exit 1
 fi
