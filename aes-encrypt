@@ -81,7 +81,7 @@ fi
 if [[ $OUT_FILE == "" ]] && [[ $IN_FILE == "" ]] && [[ $PASSPHRASE == "" ]]
 then
     print_help_message && \
-    exit -1
+    exit 1
 fi
 
 if [[ $ARGS ]] && [[ $OUT_FILE != "" ]] && [[ $IN_FILE != "" ]] && [[ $PASSPHRASE != "" ]]
