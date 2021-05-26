@@ -79,6 +79,7 @@ do
 
     if [[ $HASH == $PATTERN ]]
     then
+        echo "[+] ----------------------------------------------------------" && \
         echo "[+] Success HASH with pattern: $PATTERN generated successfully." && \
         echo "[+] Generated HASH: $HASH" && \
         echo "[+] Starting input: $STARTING_INPUT" && \
