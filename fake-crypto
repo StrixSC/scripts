@@ -1,0 +1,91 @@
+#!/bin/bash
+#
+# Written by Strix | Github://StrixSC
+# Small script that generates an input containing a desired substring. This was made for the Fake Crypto challenge of the Imaginary CTF
+# Dependencies: OpenSSL and md5sum
+
+STARTING_INPUT=""
+INPUT_STRING=""
+PATTERN="0e*"
+ITERATIONS=1000
+VERBOSE=false
+RANDOM_STRING_LEN=12
+
+print_help_message() {
+    echo "Fake Crypto. Small script that generates an input containing a desired substring. This was made for the Fake Crypto challenge of the Imaginary CTF."
+    echo "Usage:"
+    echo "    fake-crypto [-h] [-v] [-i] -I <STARTING_STRING> -P <PATTERN>"
+    echo "    [-h]      Displays this help message.                                                 "
+    echo "    [-v]      Toggle verbose mode.                                                        "
+    echo "    [-i]      Use a specific count of iteration. Defaults to 1000.                        "
+    echo "    [-I]      Specify a starting input for the plaintext.                                 "
+    echo "    [-P]      Pattern to look for. Defaults to 0e*.                                       "
+    echo "    [-B]      Specify a length for the randomly generated base64 strings. Defaults to 12. "
+    exit 0
+}
+
+while getopts ":hvi:I:P:" opt; do
+    case ${opt} in
+        h )
+            print_help_message
+            ;;
+        v)
+            VERBOSE=true
+            ;;
+        i ) ITERATIONS=$OPTARG
+            ;;
+        I )
+            STARTING_INPUT=$OPTARG
+            ;;
+        P )
+            PATTERN=$OPTARG
+            ;;
+        \? )
+            echo "Invalid Option: -$OPTARG" 1>&2
+            print_help_message
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND -1))
+
+echo "[+] Starting generation"
+if $VERBOSE
+then
+    echo "[~] Iteration Count: $ITERATIONS"
+    echo "[~] Starting Input: $STARTING_INPUT"
+    echo "[~] Searching for MD5 hash with pattern: $PATTERN"
+fi
+
+echo "[~] Loading..."
+for (( I=1;I<=ITERATIONS;I++ ))
+do
+    RANDOM_STRING=$(openssl rand -base64 $RANDOM_STRING_LEN)
+    INPUT="$STARTING_INPUT$RANDOM_STRING"
+
+    if [[ $INPUT == "" ]]
+    then
+        echo "[!] An error occured while generating the string"
+        exit 1
+    fi
+
+    HASH=$(echo "$INPUT" | md5sum)
+
+    if $VERBOSE
+    then
+        echo "[~] Iteration: $I. Using: $INPUT"
+        echo "[~] Generated MD5 Hash: $HASH"
+    fi
+
+    if [[ $HASH == $PATTERN ]]
+    then
+        echo "[+] Success HASH with pattern: $PATTERN generated successfully." && \
+        echo "[+] Generated HASH: $HASH" && \
+        echo "[+] Starting input: $STARTING_INPUT" && \
+        echo "[+] Plaintext: $INPUT" && \
+        exit $?
+    fi
+done
+
+echo "[-] Could not generate plaintext"
+exit 0
